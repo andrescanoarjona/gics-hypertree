@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GICS · Hyperbolic tree</title>
+  <link rel="stylesheet" href="d3-hypertree-light.css">
+  <style>
+    html, body { margin: 0; height: 100%; background: #fff; font-family: sans-serif; }
+    #arbol { width: 100vw; height: 100vh; }
+    #aviso { padding: 1rem; color: #b00020; max-width: 60ch; }
+  </style>
+</head>
+<body>
+  <div id="arbol"></div>
+
+  <script src="d3-hypertree.js"></script>
+  <script>
+    // Ruta del archivo de datos. Para usar otro árbol, cambia solo esta línea.
+    const RUTA_DATOS = "data/gics.json";
+
+    const contenedor = document.getElementById("arbol");
+    const aviso = (html) => { contenedor.innerHTML = '<p id="aviso">' + html + '</p>'; };
+
+    if (typeof hyt === "undefined") {
+      aviso("No se ha cargado <code>d3-hypertree.js</code>. Comprueba que está en la " +
+            "misma carpeta que este <code>index.html</code> y que se llama exactamente así.");
+    } else {
+      fetch(RUTA_DATOS)
+        .then((r) => {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.json();
+        })
+        .then((datos) => {
+          new hyt.Hypertree(
+            { parent: contenedor },
+            {
+              dataloader: hyt.loaders.fromData(datos),
+              // Sin esto la librería no muestra el texto de los nodos.
+              langInitBFS: (ht, n) => { n.precalc.label = n.data.name; }
+            }
+          );
+        })
+        .catch((e) => {
+          aviso("No se han podido cargar los datos (<code>" + RUTA_DATOS + "</code>): " + e.message +
+                ".<br>Si abriste el archivo con doble clic, el navegador bloquea la carga. " +
+                "Ábrelo desde un servidor local (por ejemplo, la extensión Live Server de VS Code) " +
+                "o desde GitHub Pages.");
+        });
+    }
+  </script>
+</body>
+</html>
